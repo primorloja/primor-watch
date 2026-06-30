@@ -104,17 +104,21 @@ export function LeadDrawer({
   async function handleSave() {
     if (!lead) return;
     setSaving(true);
-    const update: Record<string, unknown> = {
-      status_funil: status,
-      valor_venda: valor === "" ? null : Number(valor),
-      observacoes: observacoes || null,
-    };
-    if (status === "vendido") {
-      update.data_venda = dataVenda ? new Date(dataVenda).toISOString() : new Date().toISOString();
-    } else {
-      update.data_venda = null;
-    }
-    const { error } = await supabase.from("leads").update(update).eq("id", lead.id);
+    const data_venda =
+      status === "vendido"
+        ? dataVenda
+          ? new Date(dataVenda).toISOString()
+          : new Date().toISOString()
+        : null;
+    const { error } = await supabase
+      .from("leads")
+      .update({
+        status_funil: status,
+        valor_venda: valor === "" ? null : Number(valor),
+        observacoes: observacoes || null,
+        data_venda,
+      })
+      .eq("id", lead.id);
     setSaving(false);
     if (error) {
       toast.error("Erro ao salvar: " + error.message);
