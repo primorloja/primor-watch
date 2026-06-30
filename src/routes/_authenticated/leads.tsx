@@ -290,10 +290,10 @@ function FilterSelect({
 
 const STATUS_COLORS: Record<StatusFunil, string> = {
   novo: "bg-muted text-foreground",
-  em_atendimento: "bg-[color-mix(in_oklab,var(--sage-soft)_60%,white)] text-foreground",
-  qualificado: "bg-[var(--sage-soft)] text-foreground",
-  negociando: "bg-[color-mix(in_oklab,var(--sage)_30%,white)] text-foreground",
-  vendido: "bg-[var(--sage)] text-primary-foreground",
+  em_atendimento: "bg-[color-mix(in_oklab,var(--rose-accent)_55%,white)] text-foreground",
+  qualificado: "bg-[var(--rose-accent)] text-foreground",
+  negociando: "bg-[color-mix(in_oklab,var(--primary)_25%,white)] text-foreground",
+  vendido: "bg-[var(--primary)] text-primary-foreground",
   perdido: "bg-muted text-muted-foreground line-through",
 };
 
