@@ -145,7 +145,7 @@ function VendedorasPage() {
                       rankBy === "faturamento" ? formatBRL(v) : formatPercent(v)
                     }
                   />
-                  <Bar dataKey={rankBy === "faturamento" ? "fat" : "conv"} fill="var(--sage)" radius={[0, 6, 6, 0]} />
+                  <Bar dataKey={rankBy === "faturamento" ? "fat" : "conv"} fill="var(--primary)" radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>

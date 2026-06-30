@@ -183,7 +183,7 @@ function DashboardPage() {
                     <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
                     <YAxis type="category" dataKey="status" stroke="var(--muted-foreground)" fontSize={12} width={110} />
                     <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)" }} />
-                    <Bar dataKey="qtd" fill="var(--sage)" radius={[0, 6, 6, 0]} />
+                    <Bar dataKey="qtd" fill="var(--primary)" radius={[0, 6, 6, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -200,7 +200,7 @@ function DashboardPage() {
                     <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={12} />
                     <YAxis stroke="var(--muted-foreground)" fontSize={12} allowDecimals={false} />
                     <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)" }} />
-                    <Line type="monotone" dataKey="qtd" stroke="var(--sage)" strokeWidth={2} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="qtd" stroke="var(--primary)" strokeWidth={2} dot={{ r: 3 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -233,7 +233,7 @@ function DashboardPage() {
                     contentStyle={{ background: "var(--card)", border: "1px solid var(--border)" }}
                     formatter={(v: number) => (vendMetric === "faturamento" ? formatBRL(v) : v)}
                   />
-                  <Bar dataKey={vendMetric} fill="var(--sage)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey={vendMetric} fill="var(--primary)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
