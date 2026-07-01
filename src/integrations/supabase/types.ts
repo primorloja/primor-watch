@@ -91,7 +91,39 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      dashboard_funil: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          qtd: number
+          status_funil: string
+        }[]
+      }
+      dashboard_kpis: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          faturamento: number
+          qualificados: number
+          total: number
+          vendidos: number
+        }[]
+      }
+      dashboard_leads_por_dia: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          dia: string
+          qtd: number
+        }[]
+      }
+      dashboard_vendedoras: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          faturamento: number
+          leads: number
+          qualificados: number
+          responsavel: string
+          vendas: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
