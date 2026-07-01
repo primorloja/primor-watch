@@ -90,6 +90,9 @@ export function LeadDrawer({
   const [valor, setValor] = useState<string>("");
   const [dataVenda, setDataVenda] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
+  const [nome, setNome] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [perfil, setPerfil] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -98,6 +101,9 @@ export function LeadDrawer({
       setValor(lead.valor_venda != null ? String(lead.valor_venda) : "");
       setDataVenda(lead.data_venda ? lead.data_venda.slice(0, 10) : "");
       setObservacoes(lead.observacoes ?? "");
+      setNome(lead.nome ?? "");
+      setCidade(lead.cidade ?? "");
+      setPerfil(lead.perfil ?? "");
     }
   }, [lead?.id]);
 
@@ -117,6 +123,9 @@ export function LeadDrawer({
         valor_venda: valor === "" ? null : Number(valor),
         observacoes: observacoes || null,
         data_venda,
+        nome: nome.trim() || null,
+        cidade: cidade.trim() || null,
+        perfil: perfil || null,
       })
       .eq("id", lead.id);
     setSaving(false);
