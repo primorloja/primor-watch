@@ -27,12 +27,12 @@ export const Route = createFileRoute("/_authenticated/vendedoras")({
   component: VendedorasPage,
 });
 
-type Lead = {
+type VendRow = {
   responsavel: string;
-  status_funil: string;
-  qualificado_ia: boolean | null;
-  valor_venda: number | null;
-  criado_em: string | null;
+  leads: number;
+  qualificados: number;
+  vendas: number;
+  faturamento: number;
 };
 
 function VendedorasPage() {
@@ -41,40 +41,37 @@ function VendedorasPage() {
   const [rankBy, setRankBy] = useState<"faturamento" | "conversao">("faturamento");
   const range = useMemo(() => getPeriodRange(period, custom), [period, custom]);
 
-  const { data: leads = [], isLoading } = useQuery({
-    queryKey: ["leads-vend", range.from?.toISOString() ?? null, range.to?.toISOString() ?? null],
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["vend-rpc", range.from?.toISOString() ?? null, range.to?.toISOString() ?? null],
     queryFn: async () => {
-      let q = supabase
-        .from("leads")
-        .select("responsavel,status_funil,qualificado_ia,valor_venda,criado_em")
-        .limit(2000);
-      if (range.from) q = q.gte("criado_em", range.from.toISOString());
-      if (range.to) q = q.lte("criado_em", range.to.toISOString());
-      const { data, error } = await q;
+      const args = {
+        p_from: (range.from ? range.from.toISOString() : null) as unknown as string,
+        p_to: (range.to ? range.to.toISOString() : null) as unknown as string,
+      };
+      const { data, error } = await supabase.rpc("dashboard_vendedoras", args);
       if (error) throw error;
-      return (data ?? []) as Lead[];
+      return (data ?? []) as VendRow[];
     },
   });
 
   const stats = useMemo(() => {
+    const map = new Map(rows.map((r) => [r.responsavel, r]));
     return VENDEDORAS.map((v) => {
-      const ls = leads.filter((l) => l.responsavel === v);
-      const total = ls.length;
-      const qual = ls.filter((l) => l.qualificado_ia).length;
-      const vendidos = ls.filter((l) => l.status_funil === "vendido");
-      const fat = vendidos.reduce((acc, l) => acc + (Number(l.valor_venda) || 0), 0);
-      const conv = total > 0 ? (vendidos.length / total) * 100 : 0;
-      const ticket = vendidos.length > 0 ? fat / vendidos.length : 0;
+      const r = map.get(v);
+      const total = Number(r?.leads) || 0;
+      const qual = Number(r?.qualificados) || 0;
+      const vendas = Number(r?.vendas) || 0;
+      const fat = Number(r?.faturamento) || 0;
       return {
         nome: v,
         total,
         qualPct: total > 0 ? (qual / total) * 100 : 0,
-        conv,
+        conv: total > 0 ? (vendas / total) * 100 : 0,
         fat,
-        ticket,
+        ticket: vendas > 0 ? fat / vendas : 0,
       };
     });
-  }, [leads]);
+  }, [rows]);
 
   const ranking = useMemo(() => {
     return [...stats].sort((a, b) =>
