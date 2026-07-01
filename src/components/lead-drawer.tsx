@@ -158,13 +158,35 @@ export function LeadDrawer({
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Info label="Telefone" value={lead.telefone_e164} />
               <Info label="Vendedora" value={lead.responsavel} />
-              <Info label="Cidade" value={lead.cidade || "—"} />
-              <Info label="Perfil" value={lead.perfil ? PERFIL_LABEL[lead.perfil] ?? lead.perfil : "—"} />
               <Info label="Criado em" value={formatDateTime(lead.criado_em)} />
               <Info label="Última interação" value={formatDateTime(lead.ultima_interacao_em)} />
             </div>
 
             <div className="space-y-3 border-t pt-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2 col-span-2">
+                  <Label>Nome</Label>
+                  <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome do lead" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cidade</Label>
+                  <Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Cidade" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Perfil</Label>
+                  <Select value={perfil || "__none"} onValueChange={(v) => setPerfil(v === "__none" ? "" : v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Não definido</SelectItem>
+                      <SelectItem value="pf">{PERFIL_LABEL["pf"]}</SelectItem>
+                      <SelectItem value="lojista">{PERFIL_LABEL["lojista"]}</SelectItem>
+                      <SelectItem value="revendedor">{PERFIL_LABEL["revendedor"]}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={status} onValueChange={(v) => setStatus(v as StatusFunil)}>
