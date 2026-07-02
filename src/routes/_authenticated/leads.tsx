@@ -215,7 +215,7 @@ function LeadsPage() {
                   <th className="px-4 py-2 font-medium">Perfil</th>
                   <th className="px-4 py-2 font-medium">Status</th>
                   <th className="px-4 py-2 font-medium">Qualif.</th>
-                  <th className="px-4 py-2 font-medium">Valor</th>
+                  <th className="px-4 py-2 font-medium">Compras</th>
                   <th className="px-4 py-2 font-medium">Atualizado</th>
                 </tr>
               </thead>
