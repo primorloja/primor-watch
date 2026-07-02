@@ -31,6 +31,13 @@ import {
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  beforeLoad: async () => {
+    if (typeof window === "undefined") return;
+    const { getCurrentRole } = await import("@/lib/use-role");
+    const { redirect } = await import("@tanstack/react-router");
+    const role = await getCurrentRole();
+    if (role !== "gestora") throw redirect({ to: "/leads" });
+  },
   component: DashboardPage,
 });
 

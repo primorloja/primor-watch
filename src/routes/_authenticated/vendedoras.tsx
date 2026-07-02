@@ -24,6 +24,13 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/vendedoras")({
+  beforeLoad: async () => {
+    if (typeof window === "undefined") return;
+    const { getCurrentRole } = await import("@/lib/use-role");
+    const { redirect } = await import("@tanstack/react-router");
+    const role = await getCurrentRole();
+    if (role !== "gestora") throw redirect({ to: "/leads" });
+  },
   component: VendedorasPage,
 });
 
