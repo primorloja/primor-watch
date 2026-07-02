@@ -159,6 +159,9 @@ function LeadsPage() {
             <TabsTrigger value="kanban">Kanban</TabsTrigger>
           </TabsList>
         </Tabs>
+        <Button onClick={() => setNewOpen(true)} className="gap-1">
+          <Plus className="h-4 w-4" /> Novo Lead
+        </Button>
       </div>
 
       <Card>
