@@ -162,6 +162,14 @@ export type Database = {
           vendas: number
         }[]
       }
+      leads_compras_agg: {
+        Args: never
+        Returns: {
+          lead_id: string
+          qtd: number
+          total: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

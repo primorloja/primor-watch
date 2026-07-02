@@ -19,8 +19,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { STATUS_FUNIL, STATUS_LABEL, PERFIL_LABEL, formatDateTime, type StatusFunil } from "@/lib/primor";
-import { Sparkles } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { STATUS_FUNIL, STATUS_LABEL, PERFIL_LABEL, formatBRL, formatDate, formatDateTime, type StatusFunil } from "@/lib/primor";
+import { Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 type Lead = {
@@ -34,9 +45,16 @@ type Lead = {
   ultima_interacao_em: string | null;
   status_funil: string;
   qualificado_ia: boolean | null;
-  valor_venda: number | null;
-  data_venda: string | null;
   observacoes: string | null;
+};
+
+type Venda = {
+  id: string;
+  valor: number;
+  data_venda: string;
+  observacao: string | null;
+  registrado_por: string | null;
+  created_at: string;
 };
 
 type ChatMsg = {
@@ -69,6 +87,21 @@ export function LeadDrawer({
     enabled: !!leadId && open,
   });
 
+  const { data: vendas = [] } = useQuery({
+    queryKey: ["vendas", leadId],
+    queryFn: async () => {
+      if (!leadId) return [];
+      const { data, error } = await supabase
+        .from("vendas")
+        .select("id,valor,data_venda,observacao,registrado_por,created_at")
+        .eq("lead_id", leadId)
+        .order("data_venda", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Venda[];
+    },
+    enabled: !!leadId && open,
+  });
+
   const { data: messages = [] } = useQuery({
     queryKey: ["chat", lead?.telefone_e164],
     queryFn: async () => {
@@ -87,19 +120,21 @@ export function LeadDrawer({
   });
 
   const [status, setStatus] = useState<StatusFunil>("novo");
-  const [valor, setValor] = useState<string>("");
-  const [dataVenda, setDataVenda] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
   const [nome, setNome] = useState("");
   const [cidade, setCidade] = useState("");
   const [perfil, setPerfil] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
+  // Nova compra
+  const [novoValor, setNovoValor] = useState("");
+  const [novaData, setNovaData] = useState(() => new Date().toISOString().slice(0, 10));
+  const [novaObs, setNovaObs] = useState("");
+  const [registrando, setRegistrando] = useState(false);
+
   useEffect(() => {
     if (lead) {
       setStatus((lead.status_funil as StatusFunil) ?? "novo");
-      setValor(lead.valor_venda != null ? String(lead.valor_venda) : "");
-      setDataVenda(lead.data_venda ? lead.data_venda.slice(0, 10) : "");
       setObservacoes(lead.observacoes ?? "");
       setNome(lead.nome ?? "");
       setCidade(lead.cidade ?? "");
@@ -107,22 +142,18 @@ export function LeadDrawer({
     }
   }, [lead?.id]);
 
+  const totalComprado = vendas.reduce((s, v) => s + Number(v.valor || 0), 0);
+  const numCompras = vendas.length;
+  const ticketMedio = numCompras > 0 ? totalComprado / numCompras : 0;
+
   async function handleSave() {
     if (!lead) return;
     setSaving(true);
-    const data_venda =
-      status === "vendido"
-        ? dataVenda
-          ? new Date(dataVenda).toISOString()
-          : new Date().toISOString()
-        : null;
     const { error } = await supabase
       .from("leads")
       .update({
         status_funil: status,
-        valor_venda: valor === "" ? null : Number(valor),
         observacoes: observacoes || null,
-        data_venda,
         nome: nome.trim() || null,
         cidade: cidade.trim() || null,
         perfil: perfil || null,
@@ -136,6 +167,80 @@ export function LeadDrawer({
     toast.success("Lead atualizado");
     qc.invalidateQueries({ queryKey: ["leads"] });
     qc.invalidateQueries({ queryKey: ["lead", lead.id] });
+  }
+
+  async function syncLeadFromVendas(leadIdArg: string) {
+    const { data } = await supabase
+      .from("vendas")
+      .select("valor,data_venda")
+      .eq("lead_id", leadIdArg)
+      .order("data_venda", { ascending: false })
+      .limit(1);
+    const latest = data?.[0];
+    await supabase
+      .from("leads")
+      .update({
+        valor_venda: latest ? Number(latest.valor) : null,
+        data_venda: latest ? new Date(latest.data_venda).toISOString() : null,
+      })
+      .eq("id", leadIdArg);
+  }
+
+  async function handleRegistrarCompra() {
+    if (!lead) return;
+    const valorNum = Number(novoValor);
+    if (!valorNum || valorNum <= 0) {
+      toast.error("Informe um valor válido");
+      return;
+    }
+    if (!novaData) {
+      toast.error("Informe a data da venda");
+      return;
+    }
+    setRegistrando(true);
+    const { error } = await supabase.from("vendas").insert({
+      lead_id: lead.id,
+      valor: valorNum,
+      data_venda: novaData,
+      observacao: novaObs.trim() || null,
+      registrado_por: lead.responsavel,
+    });
+    if (error) {
+      setRegistrando(false);
+      toast.error("Erro ao registrar compra: " + error.message);
+      return;
+    }
+    await syncLeadFromVendas(lead.id);
+    setRegistrando(false);
+    setNovoValor("");
+    setNovaObs("");
+    setNovaData(new Date().toISOString().slice(0, 10));
+    toast.success("Compra registrada");
+    qc.invalidateQueries({ queryKey: ["vendas", lead.id] });
+    qc.invalidateQueries({ queryKey: ["leads"] });
+    qc.invalidateQueries({ queryKey: ["lead", lead.id] });
+    qc.invalidateQueries({ queryKey: ["leads-compras"] });
+    qc.invalidateQueries({ queryKey: ["dash-kpis"] });
+    qc.invalidateQueries({ queryKey: ["dash-vend"] });
+    qc.invalidateQueries({ queryKey: ["vend-rpc"] });
+  }
+
+  async function handleExcluirCompra(vendaId: string) {
+    if (!lead) return;
+    const { error } = await supabase.from("vendas").delete().eq("id", vendaId);
+    if (error) {
+      toast.error("Erro ao excluir: " + error.message);
+      return;
+    }
+    await syncLeadFromVendas(lead.id);
+    toast.success("Compra excluída");
+    qc.invalidateQueries({ queryKey: ["vendas", lead.id] });
+    qc.invalidateQueries({ queryKey: ["leads"] });
+    qc.invalidateQueries({ queryKey: ["lead", lead.id] });
+    qc.invalidateQueries({ queryKey: ["leads-compras"] });
+    qc.invalidateQueries({ queryKey: ["dash-kpis"] });
+    qc.invalidateQueries({ queryKey: ["dash-vend"] });
+    qc.invalidateQueries({ queryKey: ["vend-rpc"] });
   }
 
   return (
@@ -203,23 +308,6 @@ export function LeadDrawer({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Valor da venda (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={valor}
-                  onChange={(e) => setValor(e.target.value)}
-                  placeholder="0,00"
-                />
-              </div>
-              {status === "vendido" && (
-                <div className="space-y-2">
-                  <Label>Data da venda</Label>
-                  <Input type="date" value={dataVenda} onChange={(e) => setDataVenda(e.target.value)} />
-                </div>
-              )}
-              <div className="space-y-2">
                 <Label>Observações</Label>
                 <Textarea
                   rows={3}
@@ -231,6 +319,92 @@ export function LeadDrawer({
               <Button onClick={handleSave} disabled={saving} className="w-full">
                 {saving ? "Salvando..." : "Salvar alterações"}
               </Button>
+            </div>
+
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="font-medium">Histórico de Compras</h3>
+
+              <div className="grid grid-cols-3 gap-2">
+                <MiniCard label="Total comprado" value={formatBRL(totalComprado)} />
+                <MiniCard label="Nº de compras" value={String(numCompras)} />
+                <MiniCard label="Ticket médio" value={formatBRL(ticketMedio)} />
+              </div>
+
+              {vendas.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma compra registrada.</p>
+              ) : (
+                <ul className="divide-y border rounded-md">
+                  {vendas.map((v) => (
+                    <li key={v.id} className="p-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium">{formatBRL(Number(v.valor))}</span>
+                          <span className="text-xs text-muted-foreground">{formatDate(v.data_venda)}</span>
+                        </div>
+                        {v.observacao && (
+                          <div className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap break-words">
+                            {v.observacao}
+                          </div>
+                        )}
+                      </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir compra?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta ação não pode ser desfeita. A compra de {formatBRL(Number(v.valor))} de {formatDate(v.data_venda)} será removida.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleExcluirCompra(v.id)}>
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="space-y-3 border rounded-md p-3 bg-muted/30">
+                <div className="text-sm font-medium">Registrar nova compra</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Valor (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={novoValor}
+                      onChange={(e) => setNovoValor(e.target.value)}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data da venda</Label>
+                    <Input type="date" value={novaData} onChange={(e) => setNovaData(e.target.value)} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Observação</Label>
+                  <Textarea
+                    rows={2}
+                    value={novaObs}
+                    onChange={(e) => setNovaObs(e.target.value)}
+                    placeholder="Detalhes da compra (opcional)"
+                  />
+                </div>
+                <Button onClick={handleRegistrarCompra} disabled={registrando} className="w-full">
+                  {registrando ? "Registrando..." : "Registrar Compra"}
+                </Button>
+              </div>
             </div>
 
             <div className="border-t pt-4">
@@ -288,6 +462,15 @@ function Info({ label, value }: { label: string; value: string }) {
     <div>
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="font-medium truncate">{value}</div>
+    </div>
+  );
+}
+
+function MiniCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border p-2 text-center">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-1 text-sm font-semibold">{value}</div>
     </div>
   );
 }

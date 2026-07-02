@@ -93,6 +93,21 @@ function LeadsPage() {
     },
   });
 
+  const { data: comprasAgg = [] } = useQuery({
+    queryKey: ["leads-compras"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("leads_compras_agg");
+      if (error) throw error;
+      return (data ?? []) as { lead_id: string; qtd: number; total: number }[];
+    },
+  });
+
+  const comprasMap = useMemo(() => {
+    const m = new Map<string, { qtd: number; total: number }>();
+    for (const r of comprasAgg) m.set(r.lead_id, { qtd: Number(r.qtd) || 0, total: Number(r.total) || 0 });
+    return m;
+  }, [comprasAgg]);
+
   const cidades = useMemo(
     () => Array.from(new Set(leads.map((l) => l.cidade).filter(Boolean) as string[])).sort(),
     [leads],
@@ -200,7 +215,7 @@ function LeadsPage() {
                   <th className="px-4 py-2 font-medium">Perfil</th>
                   <th className="px-4 py-2 font-medium">Status</th>
                   <th className="px-4 py-2 font-medium">Qualif.</th>
-                  <th className="px-4 py-2 font-medium">Valor</th>
+                  <th className="px-4 py-2 font-medium">Compras</th>
                   <th className="px-4 py-2 font-medium">Atualizado</th>
                 </tr>
               </thead>
@@ -227,7 +242,18 @@ function LeadsPage() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-2">{l.valor_venda != null ? formatBRL(Number(l.valor_venda)) : "—"}</td>
+                    <td className="px-4 py-2">
+                      {(() => {
+                        const c = comprasMap.get(l.id);
+                        if (!c || c.qtd === 0) return <span className="text-muted-foreground">—</span>;
+                        return (
+                          <div className="leading-tight">
+                            <div className="font-medium">{formatBRL(c.total)}</div>
+                            <div className="text-xs text-muted-foreground">{c.qtd} {c.qtd === 1 ? "compra" : "compras"}</div>
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td className="px-4 py-2 text-muted-foreground">{relativeFromNow(l.ultima_interacao_em)}</td>
                   </tr>
                 ))}
