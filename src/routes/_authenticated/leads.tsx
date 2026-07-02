@@ -242,7 +242,18 @@ function LeadsPage() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-2">{l.valor_venda != null ? formatBRL(Number(l.valor_venda)) : "—"}</td>
+                    <td className="px-4 py-2">
+                      {(() => {
+                        const c = comprasMap.get(l.id);
+                        if (!c || c.qtd === 0) return <span className="text-muted-foreground">—</span>;
+                        return (
+                          <div className="leading-tight">
+                            <div className="font-medium">{formatBRL(c.total)}</div>
+                            <div className="text-xs text-muted-foreground">{c.qtd} {c.qtd === 1 ? "compra" : "compras"}</div>
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td className="px-4 py-2 text-muted-foreground">{relativeFromNow(l.ultima_interacao_em)}</td>
                   </tr>
                 ))}
