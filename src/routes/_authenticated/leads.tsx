@@ -74,6 +74,7 @@ function LeadsPage() {
   const [fStatus, setFStatus] = useState<string>("all");
   const [fQual, setFQual] = useState<string>("all");
   const [drawerId, setDrawerId] = useState<string | null>(search.leadId ?? null);
+  const [newOpen, setNewOpen] = useState(false);
 
   useEffect(() => {
     setDrawerId(search.leadId ?? null);
