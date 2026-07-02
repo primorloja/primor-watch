@@ -86,6 +86,44 @@ export type Database = {
         }
         Relationships: []
       }
+      vendas: {
+        Row: {
+          created_at: string
+          data_venda: string
+          id: string
+          lead_id: string
+          observacao: string | null
+          registrado_por: string | null
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          data_venda?: string
+          id?: string
+          lead_id: string
+          observacao?: string | null
+          registrado_por?: string | null
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          data_venda?: string
+          id?: string
+          lead_id?: string
+          observacao?: string | null
+          registrado_por?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendas_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
