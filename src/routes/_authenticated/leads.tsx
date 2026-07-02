@@ -24,8 +24,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Search } from "lucide-react";
+import { Sparkles, Search, Plus } from "lucide-react";
 import { LeadDrawer } from "@/components/lead-drawer";
+import { NewLeadDialog } from "@/components/new-lead-dialog";
 import { toast } from "sonner";
 import {
   DndContext,
