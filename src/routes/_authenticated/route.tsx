@@ -27,6 +27,8 @@ const nav = [
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const router = useRouter();
+  const role = useRole();
+  const items = nav.filter((n) => (role ? n.roles.includes(role) : n.to === "/leads"));
 
   async function handleSignOut() {
     await supabase.auth.signOut();
