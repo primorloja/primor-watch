@@ -24,8 +24,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Search } from "lucide-react";
+import { Sparkles, Search, Plus } from "lucide-react";
 import { LeadDrawer } from "@/components/lead-drawer";
+import { NewLeadDialog } from "@/components/new-lead-dialog";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -73,6 +74,7 @@ function LeadsPage() {
   const [fStatus, setFStatus] = useState<string>("all");
   const [fQual, setFQual] = useState<string>("all");
   const [drawerId, setDrawerId] = useState<string | null>(search.leadId ?? null);
+  const [newOpen, setNewOpen] = useState(false);
 
   useEffect(() => {
     setDrawerId(search.leadId ?? null);
@@ -157,6 +159,9 @@ function LeadsPage() {
             <TabsTrigger value="kanban">Kanban</TabsTrigger>
           </TabsList>
         </Tabs>
+        <Button onClick={() => setNewOpen(true)} className="gap-1">
+          <Plus className="h-4 w-4" /> Novo Lead
+        </Button>
       </div>
 
       <Card>
@@ -282,6 +287,7 @@ function LeadsPage() {
           }
         }}
       />
+      <NewLeadDialog open={newOpen} onOpenChange={setNewOpen} />
     </div>
   );
 }
