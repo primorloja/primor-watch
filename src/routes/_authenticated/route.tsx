@@ -6,6 +6,7 @@ import logo from "@/assets/logo-primor.png";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { useRole, type Role } from "@/lib/use-role";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -18,9 +19,9 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 const nav = [
-  { to: "/dashboard", label: "Visão Geral", icon: LayoutDashboard },
-  { to: "/leads", label: "Leads", icon: Users },
-  { to: "/vendedoras", label: "Vendedoras", icon: UserCircle2 },
+  { to: "/dashboard", label: "Visão Geral", icon: LayoutDashboard, roles: ["gestora"] as Role[] },
+  { to: "/leads", label: "Leads", icon: Users, roles: ["gestora", "vendedora"] as Role[] },
+  { to: "/vendedoras", label: "Vendedoras", icon: UserCircle2, roles: ["gestora"] as Role[] },
 ] as const;
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
