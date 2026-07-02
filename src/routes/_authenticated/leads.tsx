@@ -287,6 +287,7 @@ function LeadsPage() {
           }
         }}
       />
+      <NewLeadDialog open={newOpen} onOpenChange={setNewOpen} />
     </div>
   );
 }
