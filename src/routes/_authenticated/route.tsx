@@ -41,7 +41,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <img src={logo} alt="Primor" className="h-12 w-auto mx-auto" />
       </div>
       <nav className="flex-1 p-3 space-y-1">
-        {nav.map((item) => {
+        {items.map((item) => {
           const active = pathname.startsWith(item.to);
           const Icon = item.icon;
           return (
