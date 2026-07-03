@@ -153,7 +153,7 @@ export function LeadDrawer({
   async function handleSave() {
     if (!lead) return;
     setSaving(true);
-    const updatePayload: Record<string, unknown> = {
+    const updatePayload: Database["public"]["Tables"]["leads"]["Update"] = {
       status_funil: status,
       observacoes: observacoes || null,
       nome: nome.trim() || null,
