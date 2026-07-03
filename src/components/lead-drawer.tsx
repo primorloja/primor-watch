@@ -153,15 +153,19 @@ export function LeadDrawer({
   async function handleSave() {
     if (!lead) return;
     setSaving(true);
+    const updatePayload: Record<string, unknown> = {
+      status_funil: status,
+      observacoes: observacoes || null,
+      nome: nome.trim() || null,
+      cidade: cidade.trim() || null,
+      perfil: perfil || null,
+    };
+    if (responsavel && responsavel !== lead.responsavel) {
+      updatePayload.responsavel = responsavel;
+    }
     const { error } = await supabase
       .from("leads")
-      .update({
-        status_funil: status,
-        observacoes: observacoes || null,
-        nome: nome.trim() || null,
-        cidade: cidade.trim() || null,
-        perfil: perfil || null,
-      })
+      .update(updatePayload)
       .eq("id", lead.id);
     setSaving(false);
     if (error) {
