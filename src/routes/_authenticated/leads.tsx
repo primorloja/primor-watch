@@ -80,20 +80,60 @@ function LeadsPage() {
     setDrawerId(search.leadId ?? null);
   }, [search.leadId]);
 
-  const { data: leads = [], isLoading } = useQuery({
-    queryKey: ["leads", "all"],
-    queryFn: async () => {
-      const { data, error } = await supabase
+  // Debounce search input for server-side query
+  const [qDebounced, setQDebounced] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setQDebounced(q.trim()), 300);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  const PAGE_SIZE = 500;
+  const filterKey = { q: qDebounced, fResp, fCidade, fPerfil, fStatus, fQual };
+
+  const {
+    data: pages,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["leads", "list", filterKey],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      let query = supabase
         .from("leads")
         .select(
           "id,nome,telefone_e164,cidade,perfil,responsavel,status_funil,qualificado_ia,valor_venda,ultima_interacao_em,criado_em",
+          { count: "exact" },
         )
         .order("ultima_interacao_em", { ascending: false, nullsFirst: false })
-        .limit(1000);
+        .range(from, to);
+
+      if (fResp !== "all") query = query.eq("responsavel", fResp);
+      if (fCidade !== "all") query = query.eq("cidade", fCidade);
+      if (fPerfil !== "all") query = query.eq("perfil", fPerfil);
+      if (fStatus !== "all") query = query.eq("status_funil", fStatus);
+      if (fQual === "yes") query = query.eq("qualificado_ia", true);
+      if (fQual === "no") query = query.or("qualificado_ia.is.null,qualificado_ia.eq.false");
+      if (qDebounced) {
+        const esc = qDebounced.replace(/[%,()]/g, " ");
+        query = query.or(`nome.ilike.%${esc}%,telefone_e164.ilike.%${esc}%`);
+      }
+
+      const { data, error, count } = await query;
       if (error) throw error;
-      return (data ?? []) as Lead[];
+      return { rows: (data ?? []) as Lead[], count: count ?? 0, pageParam: pageParam as number };
+    },
+    getNextPageParam: (last) => {
+      const loaded = (last.pageParam + 1) * PAGE_SIZE;
+      return loaded < last.count ? last.pageParam + 1 : undefined;
     },
   });
+
+  const leads = useMemo<Lead[]>(() => pages?.pages.flatMap((p) => p.rows) ?? [], [pages]);
+  const totalCount = pages?.pages[0]?.count ?? leads.length;
 
   const { data: comprasAgg = [] } = useQuery({
     queryKey: ["leads-compras"],
@@ -115,22 +155,26 @@ function LeadsPage() {
     [leads],
   );
 
-  const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    return leads.filter((l) => {
-      if (fResp !== "all" && l.responsavel !== fResp) return false;
-      if (fCidade !== "all" && l.cidade !== fCidade) return false;
-      if (fPerfil !== "all" && l.perfil !== fPerfil) return false;
-      if (fStatus !== "all" && l.status_funil !== fStatus) return false;
-      if (fQual === "yes" && !l.qualificado_ia) return false;
-      if (fQual === "no" && l.qualificado_ia) return false;
-      if (term) {
-        const hay = `${l.nome ?? ""} ${l.telefone_e164}`.toLowerCase();
-        if (!hay.includes(term)) return false;
-      }
-      return true;
-    });
-  }, [leads, q, fResp, fCidade, fPerfil, fStatus, fQual]);
+  // Filtering is done server-side now; keep alias for existing render code
+  const filtered = leads;
+
+  // Infinite-scroll sentinel
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
 
   async function updateStatus(id: string, status: StatusFunil) {
     const { error } = await supabase.from("leads").update({ status_funil: status }).eq("id", id);
