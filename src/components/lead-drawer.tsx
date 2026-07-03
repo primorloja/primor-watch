@@ -301,6 +301,23 @@ export function LeadDrawer({
                 </div>
               </div>
               <div className="space-y-2">
+                <Label>Responsável</Label>
+                <Select value={responsavel} onValueChange={setResponsavel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a vendedora" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VENDEDORAS.concat(
+                      responsavel && !VENDEDORAS.includes(responsavel) ? [responsavel] : [],
+                    ).map((v) => (
+                      <SelectItem key={v} value={v}>
+                        {v}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={status} onValueChange={(v) => setStatus(v as StatusFunil)}>
                   <SelectTrigger>
