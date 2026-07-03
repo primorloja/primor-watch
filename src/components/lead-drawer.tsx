@@ -124,7 +124,10 @@ export function LeadDrawer({
   const [nome, setNome] = useState("");
   const [cidade, setCidade] = useState("");
   const [perfil, setPerfil] = useState<string>("");
+  const [responsavel, setResponsavel] = useState<string>("");
   const [saving, setSaving] = useState(false);
+
+  const VENDEDORAS = ["Thamiris", "Julyana", "Gabrielle", "Fernanda"];
 
   // Nova compra
   const [novoValor, setNovoValor] = useState("");
