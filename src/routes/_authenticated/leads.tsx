@@ -195,7 +195,10 @@ function LeadsPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Leads</h1>
-          <p className="text-sm text-muted-foreground">{filtered.length} leads</p>
+          <p className="text-sm text-muted-foreground">
+            {filtered.length}
+            {totalCount > filtered.length ? ` de ${totalCount}` : ""} leads
+          </p>
         </div>
         <Tabs value={view} onValueChange={(v) => setView(v as "tabela" | "kanban")}>
           <TabsList>
