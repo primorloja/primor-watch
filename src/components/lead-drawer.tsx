@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import {
   Sheet,
   SheetContent,
@@ -124,7 +125,10 @@ export function LeadDrawer({
   const [nome, setNome] = useState("");
   const [cidade, setCidade] = useState("");
   const [perfil, setPerfil] = useState<string>("");
+  const [responsavel, setResponsavel] = useState<string>("");
   const [saving, setSaving] = useState(false);
+
+  const VENDEDORAS = ["Thamiris", "Julyana", "Gabrielle", "Fernanda"];
 
   // Nova compra
   const [novoValor, setNovoValor] = useState("");
@@ -139,6 +143,7 @@ export function LeadDrawer({
       setNome(lead.nome ?? "");
       setCidade(lead.cidade ?? "");
       setPerfil(lead.perfil ?? "");
+      setResponsavel(lead.responsavel ?? "");
     }
   }, [lead?.id]);
 
@@ -149,15 +154,19 @@ export function LeadDrawer({
   async function handleSave() {
     if (!lead) return;
     setSaving(true);
+    const updatePayload: Database["public"]["Tables"]["leads"]["Update"] = {
+      status_funil: status,
+      observacoes: observacoes || null,
+      nome: nome.trim() || null,
+      cidade: cidade.trim() || null,
+      perfil: perfil || null,
+    };
+    if (responsavel && responsavel !== lead.responsavel) {
+      updatePayload.responsavel = responsavel;
+    }
     const { error } = await supabase
       .from("leads")
-      .update({
-        status_funil: status,
-        observacoes: observacoes || null,
-        nome: nome.trim() || null,
-        cidade: cidade.trim() || null,
-        perfil: perfil || null,
-      })
+      .update(updatePayload)
       .eq("id", lead.id);
     setSaving(false);
     if (error) {
@@ -262,7 +271,6 @@ export function LeadDrawer({
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Info label="Telefone" value={lead.telefone_e164} />
-              <Info label="Vendedora" value={lead.responsavel} />
               <Info label="Criado em" value={formatDateTime(lead.criado_em)} />
               <Info label="Última interação" value={formatDateTime(lead.ultima_interacao_em)} />
             </div>
@@ -291,6 +299,23 @@ export function LeadDrawer({
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Responsável</Label>
+                <Select value={responsavel} onValueChange={setResponsavel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a vendedora" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VENDEDORAS.concat(
+                      responsavel && !VENDEDORAS.includes(responsavel) ? [responsavel] : [],
+                    ).map((v) => (
+                      <SelectItem key={v} value={v}>
+                        {v}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
