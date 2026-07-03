@@ -324,6 +324,23 @@ function LeadsPage() {
         <KanbanBoard leads={filtered} onOpen={openLead} onMove={updateStatus} />
       )}
 
+      {!isLoading && (
+        <div ref={sentinelRef} className="flex justify-center py-4">
+          {hasNextPage ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+            >
+              {isFetchingNextPage ? "Carregando..." : "Carregar mais"}
+            </Button>
+          ) : leads.length > 0 ? (
+            <span className="text-xs text-muted-foreground">Fim da lista</span>
+          ) : null}
+        </div>
+      )}
+
       <LeadDrawer
         leadId={drawerId}
         open={!!drawerId}
