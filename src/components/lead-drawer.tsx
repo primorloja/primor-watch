@@ -142,6 +142,7 @@ export function LeadDrawer({
       setNome(lead.nome ?? "");
       setCidade(lead.cidade ?? "");
       setPerfil(lead.perfil ?? "");
+      setResponsavel(lead.responsavel ?? "");
     }
   }, [lead?.id]);
 
