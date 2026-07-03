@@ -271,7 +271,6 @@ export function LeadDrawer({
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Info label="Telefone" value={lead.telefone_e164} />
-              <Info label="Vendedora" value={lead.responsavel} />
               <Info label="Criado em" value={formatDateTime(lead.criado_em)} />
               <Info label="Última interação" value={formatDateTime(lead.ultima_interacao_em)} />
             </div>
