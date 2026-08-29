@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Users, UserCircle2, LogOut, Menu } from "lucide-react";
+import { LayoutDashboard, Users, UserCircle2, LogOut, Menu, SlidersHorizontal } from "lucide-react";
 import logo from "@/assets/logo-primor.png";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ const nav = [
   { to: "/dashboard", label: "Visão Geral", icon: LayoutDashboard, roles: ["gestora"] as Role[] },
   { to: "/leads", label: "Leads", icon: Users, roles: ["gestora", "vendedora"] as Role[] },
   { to: "/vendedoras", label: "Vendedoras", icon: UserCircle2, roles: ["gestora"] as Role[] },
+  { to: "/funil", label: "Configurações do Funil", icon: SlidersHorizontal, roles: ["gestora"] as Role[] },
 ] as const;
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
