@@ -440,19 +440,19 @@ function KanbanBoard({
 
 
 function KanbanColumn({
-  status,
+  etapa,
   items,
   onOpen,
 }: {
-  status: StatusFunil;
+  etapa: Etapa;
   items: Lead[];
   onOpen: (id: string) => void;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: status });
+  const { setNodeRef, isOver } = useDroppable({ id: etapa.slug });
   return (
     <div className="min-w-[260px] w-[260px] shrink-0 flex flex-col">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-medium">{STATUS_LABEL[status]}</h3>
+        <h3 className="text-sm font-medium">{etapa.nome}</h3>
         <span className="text-xs text-muted-foreground">{items.length}</span>
       </div>
       <div
@@ -491,9 +491,22 @@ function KanbanCard({ lead, onOpen }: { lead: Lead; onOpen: (id: string) => void
       </div>
       <div className="text-xs text-muted-foreground mt-1 truncate">{lead.responsavel}</div>
       {lead.cidade && <div className="text-xs text-muted-foreground truncate">{lead.cidade}</div>}
+      {lead.etiquetas && lead.etiquetas.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {lead.etiquetas.slice(0, 4).map((t) => (
+            <span
+              key={t}
+              className={`rounded px-1.5 py-0.5 text-[10px] font-semibold border ${etiquetaClass(t)}`}
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
       {lead.valor_venda != null && (
         <div className="text-xs mt-1 font-medium">{formatBRL(Number(lead.valor_venda))}</div>
       )}
     </div>
   );
 }
+
