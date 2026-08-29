@@ -31,7 +31,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { STATUS_FUNIL, STATUS_LABEL, PERFIL_LABEL, formatBRL, formatDate, formatDateTime, type StatusFunil } from "@/lib/primor";
+import { STATUS_FUNIL, STATUS_LABEL, PERFIL_LABEL, formatBRL, formatDate, formatDateTime } from "@/lib/primor";
+import { ORIGENS } from "@/lib/origens";
+import { ETIQUETAS, CATEGORIA_LABEL, etiquetaClass } from "@/lib/etiquetas";
+import { useEtapas } from "@/lib/use-etapas";
 import { Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
