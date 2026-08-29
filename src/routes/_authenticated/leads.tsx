@@ -300,7 +300,7 @@ function LeadsPage() {
                     <td className="px-4 py-2 text-muted-foreground">{l.cidade || "—"}</td>
                     <td className="px-4 py-2 text-muted-foreground">{l.perfil ? PERFIL_LABEL[l.perfil] ?? l.perfil : "—"}</td>
                     <td className="px-4 py-2">
-                      <StatusBadge status={l.status_funil as StatusFunil} />
+                      <StatusBadge status={l.status_funil} cor={etapaBySlug.get(l.status_funil)?.cor} />
                     </td>
                     <td className="px-4 py-2">
                       {l.qualificado_ia ? (
@@ -338,7 +338,7 @@ function LeadsPage() {
           </CardContent>
         </Card>
       ) : (
-        <KanbanBoard leads={filtered} onOpen={openLead} onMove={updateStatus} />
+        <KanbanBoard leads={filtered} etapas={etapas} onOpen={openLead} onMove={updateStatus} />
       )}
 
       {!isLoading && (
