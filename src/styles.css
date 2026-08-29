@@ -49,83 +49,89 @@
 
 :root {
   --radius: 0.625rem;
-  /* Fundo geral #FFF8F9 */
-  --background: #FFF8F9;
-  /* Texto #2B2A28 */
-  --foreground: #2B2A28;
-  --card: #FFFFFF;
-  --card-foreground: #2B2A28;
-  --popover: #FFFFFF;
-  --popover-foreground: #2B2A28;
-  /* Primária #C2607A — sidebar ativa, botões, barras */
-  --primary: #C2607A;
+  /* Tema Dark / Wine */
+  --background: #16060D;
+  --foreground: #FBEAF0;
+  --card: #200812;
+  --card-foreground: #FBEAF0;
+  --popover: #2A0D19;
+  --popover-foreground: #FBEAF0;
+  /* Rosa vibrante */
+  --primary: #FF3366;
   --primary-foreground: #FFFFFF;
-  /* Secundária #F89EB0 — badges, hover, bordas suaves */
-  --secondary: #F89EB0;
-  --secondary-foreground: #2B2A28;
-  --muted: #FBEFF2;
-  --muted-foreground: #6B5B60;
-  --accent: #FCDDE3;
-  --accent-foreground: #2B2A28;
-  --destructive: #C0392B;
+  --secondary: #3A1220;
+  --secondary-foreground: #FFD6E2;
+  --muted: #2A0D19;
+  --muted-foreground: #C6A3B1;
+  --accent: #3A1220;
+  --accent-foreground: #FFE1EA;
+  --destructive: #FF4D4D;
   --destructive-foreground: #FFFFFF;
-  --border: #F5DCE2;
-  --input: #F5DCE2;
-  --ring: #C2607A;
-  /* Aliases legados — agora rosa */
-  --sage: #C2607A;
-  --sage-soft: #F89EB0;
-  --rose-accent: #F89EB0;
+  --border: #3A1220;
+  --input: #2F1019;
+  --ring: #FF3366;
+  --sage: #FF3366;
+  --sage-soft: #FF7A9C;
+  --rose-accent: #FF7A9C;
 
-  --chart-1: #C2607A;
-  --chart-2: #F89EB0;
-  --chart-3: #E07A93;
-  --chart-4: #F5B8C5;
-  --chart-5: #8A3F54;
+  --chart-1: #FF3366;
+  --chart-2: #FF7A9C;
+  --chart-3: #C2185B;
+  --chart-4: #FFB3C6;
+  --chart-5: #7A0F2B;
 
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #2B2A28;
-  --sidebar-primary: #C2607A;
+  /* Cores das etiquetas */
+  --tag-green: #3DD68C;
+  --tag-yellow: #F5C451;
+  --tag-red: #FF5A5F;
+  --tag-orange: #FF9F45;
+  --tag-blue: #5AA9FF;
+  --tag-purple: #B18AFF;
+
+  --sidebar: #12050A;
+  --sidebar-foreground: #FBEAF0;
+  --sidebar-primary: #FF3366;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #FCDDE3;
-  --sidebar-accent-foreground: #2B2A28;
-  --sidebar-border: #F5DCE2;
-  --sidebar-ring: #C2607A;
+  --sidebar-accent: #2A0D19;
+  --sidebar-accent-foreground: #FFE1EA;
+  --sidebar-border: #3A1220;
+  --sidebar-ring: #FF3366;
 }
 
 
 .dark {
-  --background: oklch(0.25 0.01 186.7);
-  --foreground: oklch(0.97 0.003 186.7);
-  --card: oklch(0.28 0.01 186.7);
-  --card-foreground: oklch(0.97 0.003 186.7);
-  --popover: oklch(0.28 0.01 186.7);
-  --popover-foreground: oklch(0.97 0.003 186.7);
-  --primary: oklch(0.75 0.10 186.8);
-  --primary-foreground: oklch(0.2 0.005 186.7);
-  --secondary: oklch(0.35 0.03 186.8);
-  --secondary-foreground: oklch(0.97 0.003 186.7);
-  --muted: oklch(0.3 0.005 186.7);
-  --muted-foreground: oklch(0.7 0.01 186.7);
-  --accent: oklch(0.3 0.015 186.8);
-  --accent-foreground: oklch(0.97 0.003 186.7);
-  --destructive: oklch(0.65 0.2 25);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.75 0.10 186.8);
-  --sage: oklch(0.75 0.10 186.8);
-  --sage-soft: oklch(0.55 0.03 186.8);
-  --rose-accent: oklch(0.75 0.10 186.8);
-  --sidebar: oklch(0.24 0.005 186.7);
-  --sidebar-foreground: oklch(0.97 0.003 186.7);
-  --sidebar-primary: oklch(0.75 0.10 186.8);
-  --sidebar-primary-foreground: oklch(0.2 0.005 186.7);
-  --sidebar-accent: oklch(0.3 0.015 186.8);
-  --sidebar-accent-foreground: oklch(0.97 0.003 186.7);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.75 0.10 186.8);
+  --background: #16060D;
+  --foreground: #FBEAF0;
+  --card: #200812;
+  --card-foreground: #FBEAF0;
+  --popover: #2A0D19;
+  --popover-foreground: #FBEAF0;
+  --primary: #FF3366;
+  --primary-foreground: #FFFFFF;
+  --secondary: #3A1220;
+  --secondary-foreground: #FFD6E2;
+  --muted: #2A0D19;
+  --muted-foreground: #C6A3B1;
+  --accent: #3A1220;
+  --accent-foreground: #FFE1EA;
+  --destructive: #FF4D4D;
+  --destructive-foreground: #FFFFFF;
+  --border: #3A1220;
+  --input: #2F1019;
+  --ring: #FF3366;
+  --sage: #FF3366;
+  --sage-soft: #FF7A9C;
+  --rose-accent: #FF7A9C;
+  --sidebar: #12050A;
+  --sidebar-foreground: #FBEAF0;
+  --sidebar-primary: #FF3366;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #2A0D19;
+  --sidebar-accent-foreground: #FFE1EA;
+  --sidebar-border: #3A1220;
+  --sidebar-ring: #FF3366;
 }
+
 
 @layer base {
   * {

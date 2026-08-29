@@ -13,18 +13,22 @@ export const STATUS_FUNIL = [
   "em_atendimento",
   "qualificado",
   "negociando",
+  "remarketing",
   "vendido",
   "perdido",
+  "arquivado",
 ] as const;
 export type StatusFunil = (typeof STATUS_FUNIL)[number];
 
-export const STATUS_LABEL: Record<StatusFunil, string> = {
+export const STATUS_LABEL: Record<string, string> = {
   novo: "Novo",
   em_atendimento: "Em atendimento",
   qualificado: "Qualificado",
   negociando: "Negociando",
+  remarketing: "Remarketing",
   vendido: "Vendido",
   perdido: "Perdido",
+  arquivado: "Arquivado",
 };
 
 export const PERFIL_LABEL: Record<string, string> = {

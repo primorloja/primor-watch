@@ -4,14 +4,14 @@ import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-quer
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  STATUS_FUNIL,
   STATUS_LABEL,
   VENDEDORAS,
   PERFIL_LABEL,
   formatBRL,
   relativeFromNow,
-  type StatusFunil,
 } from "@/lib/primor";
+import { useEtapas, type Etapa } from "@/lib/use-etapas";
+import { ETIQUETAS, etiquetaClass } from "@/lib/etiquetas";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,12 +60,15 @@ type Lead = {
   valor_venda: number | null;
   ultima_interacao_em: string | null;
   criado_em: string | null;
+  origem: string | null;
+  etiquetas: string[] | null;
 };
 
 function LeadsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { data: etapas = [] } = useEtapas();
   const [view, setView] = useState<"tabela" | "kanban">(search.view ?? "tabela");
   const [q, setQ] = useState("");
   const [fResp, setFResp] = useState<string>("all");
@@ -73,8 +76,14 @@ function LeadsPage() {
   const [fPerfil, setFPerfil] = useState<string>("all");
   const [fStatus, setFStatus] = useState<string>("all");
   const [fQual, setFQual] = useState<string>("all");
+  const [fEtiqueta, setFEtiqueta] = useState<string>("all");
   const [drawerId, setDrawerId] = useState<string | null>(search.leadId ?? null);
   const [newOpen, setNewOpen] = useState(false);
+
+  const etapaBySlug = useMemo(
+    () => new Map(etapas.map((e) => [e.slug, e])),
+    [etapas],
+  );
 
   useEffect(() => {
     setDrawerId(search.leadId ?? null);
@@ -88,7 +97,7 @@ function LeadsPage() {
   }, [q]);
 
   const PAGE_SIZE = 500;
-  const filterKey = { q: qDebounced, fResp, fCidade, fPerfil, fStatus, fQual };
+  const filterKey = { q: qDebounced, fResp, fCidade, fPerfil, fStatus, fQual, fEtiqueta };
 
   const {
     data: pages,
@@ -105,7 +114,7 @@ function LeadsPage() {
       let query = supabase
         .from("leads")
         .select(
-          "id,nome,telefone_e164,cidade,perfil,responsavel,status_funil,qualificado_ia,valor_venda,ultima_interacao_em,criado_em",
+          "id,nome,telefone_e164,cidade,perfil,responsavel,status_funil,qualificado_ia,valor_venda,ultima_interacao_em,criado_em,origem,etiquetas",
           { count: "exact" },
         )
         .order("ultima_interacao_em", { ascending: false, nullsFirst: false })
@@ -115,12 +124,14 @@ function LeadsPage() {
       if (fCidade !== "all") query = query.eq("cidade", fCidade);
       if (fPerfil !== "all") query = query.eq("perfil", fPerfil);
       if (fStatus !== "all") query = query.eq("status_funil", fStatus);
+      if (fEtiqueta !== "all") query = query.contains("etiquetas", [fEtiqueta]);
       if (fQual === "yes") query = query.eq("qualificado_ia", true);
       if (fQual === "no") query = query.or("qualificado_ia.is.null,qualificado_ia.eq.false");
       if (qDebounced) {
         const esc = qDebounced.replace(/[%,()]/g, " ");
         query = query.or(`nome.ilike.%${esc}%,telefone_e164.ilike.%${esc}%`);
       }
+
 
       const { data, error, count } = await query;
       if (error) throw error;
@@ -384,18 +395,21 @@ function FilterSelect({
   );
 }
 
-const STATUS_COLORS: Record<StatusFunil, string> = {
-  novo: "bg-muted text-foreground",
-  em_atendimento: "bg-[color-mix(in_oklab,var(--rose-accent)_55%,white)] text-foreground",
-  qualificado: "bg-[var(--rose-accent)] text-foreground",
-  negociando: "bg-[color-mix(in_oklab,var(--primary)_25%,white)] text-foreground",
-  vendido: "bg-[var(--primary)] text-primary-foreground",
-  perdido: "bg-muted text-muted-foreground line-through",
+const COR_CLASSES: Record<string, string> = {
+  gray: "bg-muted text-muted-foreground",
+  slate: "bg-muted text-muted-foreground",
+  blue: "bg-[var(--tag-blue)]/15 text-[var(--tag-blue)]",
+  purple: "bg-[var(--tag-purple)]/15 text-[var(--tag-purple)]",
+  orange: "bg-[var(--tag-orange)]/15 text-[var(--tag-orange)]",
+  yellow: "bg-[var(--tag-yellow)]/15 text-[var(--tag-yellow)]",
+  green: "bg-[var(--tag-green)]/15 text-[var(--tag-green)]",
+  red: "bg-[var(--tag-red)]/15 text-[var(--tag-red)]",
 };
 
-function StatusBadge({ status }: { status: StatusFunil }) {
+function StatusBadge({ status, cor }: { status: string; cor?: string | null }) {
+  const cls = (cor && COR_CLASSES[cor]) || "bg-[var(--primary)]/15 text-[var(--primary)]";
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[status] ?? "bg-muted"}`}>
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
       {STATUS_LABEL[status] ?? status}
     </span>
   );
@@ -403,18 +417,20 @@ function StatusBadge({ status }: { status: StatusFunil }) {
 
 function KanbanBoard({
   leads,
+  etapas,
   onOpen,
   onMove,
 }: {
   leads: Lead[];
+  etapas: Etapa[];
   onOpen: (id: string) => void;
-  onMove: (id: string, status: StatusFunil) => void;
+  onMove: (id: string, status: string) => void;
 }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   function handleDragEnd(e: DragEndEvent) {
     const id = String(e.active.id);
-    const overStatus = e.over?.id as StatusFunil | undefined;
+    const overStatus = e.over?.id ? String(e.over.id) : undefined;
     if (!overStatus) return;
     const lead = leads.find((l) => l.id === id);
     if (!lead || lead.status_funil === overStatus) return;
@@ -424,29 +440,30 @@ function KanbanBoard({
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-2">
-        {STATUS_FUNIL.map((s) => {
-          const items = leads.filter((l) => l.status_funil === s);
-          return <KanbanColumn key={s} status={s} items={items} onOpen={onOpen} />;
+        {etapas.map((et) => {
+          const items = leads.filter((l) => l.status_funil === et.slug);
+          return <KanbanColumn key={et.id} etapa={et} items={items} onOpen={onOpen} />;
         })}
       </div>
     </DndContext>
   );
 }
 
+
 function KanbanColumn({
-  status,
+  etapa,
   items,
   onOpen,
 }: {
-  status: StatusFunil;
+  etapa: Etapa;
   items: Lead[];
   onOpen: (id: string) => void;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: status });
+  const { setNodeRef, isOver } = useDroppable({ id: etapa.slug });
   return (
     <div className="min-w-[260px] w-[260px] shrink-0 flex flex-col">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-medium">{STATUS_LABEL[status]}</h3>
+        <h3 className="text-sm font-medium">{etapa.nome}</h3>
         <span className="text-xs text-muted-foreground">{items.length}</span>
       </div>
       <div
@@ -485,9 +502,22 @@ function KanbanCard({ lead, onOpen }: { lead: Lead; onOpen: (id: string) => void
       </div>
       <div className="text-xs text-muted-foreground mt-1 truncate">{lead.responsavel}</div>
       {lead.cidade && <div className="text-xs text-muted-foreground truncate">{lead.cidade}</div>}
+      {lead.etiquetas && lead.etiquetas.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {lead.etiquetas.slice(0, 4).map((t) => (
+            <span
+              key={t}
+              className={`rounded px-1.5 py-0.5 text-[10px] font-semibold border ${etiquetaClass(t)}`}
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
       {lead.valor_venda != null && (
         <div className="text-xs mt-1 font-medium">{formatBRL(Number(lead.valor_venda))}</div>
       )}
     </div>
   );
 }
+
