@@ -182,6 +182,24 @@ export type Database = {
           qtd: number
         }[]
       }
+      dashboard_motivos_perda: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          motivo: string
+          qtd: number
+        }[]
+      }
+      dashboard_trafego_pago: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          faturamento: number
+          leads: number
+          melhor_conversao: number
+          melhor_vendedora: string
+          ticket_medio: number
+          vendas: number
+        }[]
+      }
       dashboard_vendedoras: {
         Args: { p_from: string; p_to: string }
         Returns: {
