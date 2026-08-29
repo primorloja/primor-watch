@@ -114,8 +114,30 @@ function useDashboardData(range: PeriodRange) {
     },
   });
 
-  return { kpisQ, funilQ, diaQ, vendQ, semInteracaoQ };
+  const trafegoQ = useQuery({
+    queryKey: ["dash-trafego", ...key],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("dashboard_trafego_pago", args);
+      if (error) throw error;
+      return (data?.[0] ?? null) as {
+        leads: number; vendas: number; faturamento: number; ticket_medio: number;
+        melhor_vendedora: string | null; melhor_conversao: number | null;
+      } | null;
+    },
+  });
+
+  const motivosQ = useQuery({
+    queryKey: ["dash-motivos", ...key],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("dashboard_motivos_perda", args);
+      if (error) throw error;
+      return (data ?? []) as { motivo: string; qtd: number }[];
+    },
+  });
+
+  return { kpisQ, funilQ, diaQ, vendQ, semInteracaoQ, trafegoQ, motivosQ };
 }
+
 
 function DashboardPage() {
   const [period, setPeriod] = useState<PeriodKey>("30d");
