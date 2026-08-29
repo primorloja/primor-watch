@@ -187,7 +187,7 @@ function LeadsPage() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 
-  async function updateStatus(id: string, status: StatusFunil) {
+  async function updateStatus(id: string, status: string) {
     const { error } = await supabase.from("leads").update({ status_funil: status }).eq("id", id);
     if (error) {
       toast.error("Erro ao atualizar status");
@@ -250,7 +250,7 @@ function LeadsPage() {
             value={fStatus}
             onChange={setFStatus}
             placeholder="Status"
-            options={STATUS_FUNIL.map((s) => ({ value: s, label: STATUS_LABEL[s] }))}
+            options={etapas.map((e) => ({ value: e.slug, label: e.nome }))}
           />
           <FilterSelect
             value={fQual}
@@ -260,6 +260,12 @@ function LeadsPage() {
               { value: "yes", label: "Sim" },
               { value: "no", label: "Não" },
             ]}
+          />
+          <FilterSelect
+            value={fEtiqueta}
+            onChange={setFEtiqueta}
+            placeholder="Etiqueta"
+            options={ETIQUETAS.map((e) => ({ value: e.nome, label: e.nome }))}
           />
         </CardContent>
       </Card>
@@ -294,7 +300,7 @@ function LeadsPage() {
                     <td className="px-4 py-2 text-muted-foreground">{l.cidade || "—"}</td>
                     <td className="px-4 py-2 text-muted-foreground">{l.perfil ? PERFIL_LABEL[l.perfil] ?? l.perfil : "—"}</td>
                     <td className="px-4 py-2">
-                      <StatusBadge status={l.status_funil as StatusFunil} />
+                      <StatusBadge status={l.status_funil} cor={etapaBySlug.get(l.status_funil)?.cor} />
                     </td>
                     <td className="px-4 py-2">
                       {l.qualificado_ia ? (
@@ -332,7 +338,7 @@ function LeadsPage() {
           </CardContent>
         </Card>
       ) : (
-        <KanbanBoard leads={filtered} onOpen={openLead} onMove={updateStatus} />
+        <KanbanBoard leads={filtered} etapas={etapas} onOpen={openLead} onMove={updateStatus} />
       )}
 
       {!isLoading && (

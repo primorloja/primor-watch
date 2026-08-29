@@ -31,7 +31,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { STATUS_FUNIL, STATUS_LABEL, PERFIL_LABEL, formatBRL, formatDate, formatDateTime, type StatusFunil } from "@/lib/primor";
+import { STATUS_FUNIL, STATUS_LABEL, PERFIL_LABEL, formatBRL, formatDate, formatDateTime } from "@/lib/primor";
+import { ORIGENS } from "@/lib/origens";
+import { ETIQUETAS, CATEGORIA_LABEL, etiquetaClass } from "@/lib/etiquetas";
+import { useEtapas } from "@/lib/use-etapas";
 import { Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -47,6 +50,9 @@ type Lead = {
   status_funil: string;
   qualificado_ia: boolean | null;
   observacoes: string | null;
+  origem: string | null;
+  motivo_perda: string | null;
+  etiquetas: string[] | null;
 };
 
 type Venda = {
@@ -77,6 +83,7 @@ export function LeadDrawer({
   onOpenChange: (b: boolean) => void;
 }) {
   const qc = useQueryClient();
+  const { data: etapas = [] } = useEtapas();
   const { data: lead } = useQuery({
     queryKey: ["lead", leadId],
     queryFn: async () => {
@@ -120,12 +127,15 @@ export function LeadDrawer({
     enabled: !!lead && open,
   });
 
-  const [status, setStatus] = useState<StatusFunil>("novo");
+  const [status, setStatus] = useState<string>("novo");
   const [observacoes, setObservacoes] = useState("");
   const [nome, setNome] = useState("");
   const [cidade, setCidade] = useState("");
   const [perfil, setPerfil] = useState<string>("");
   const [responsavel, setResponsavel] = useState<string>("");
+  const [origem, setOrigem] = useState<string>("");
+  const [motivoPerda, setMotivoPerda] = useState<string>("");
+  const [etiquetas, setEtiquetas] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const VENDEDORAS = ["Thamiris", "Julyana", "Gabrielle", "Fernanda"];
@@ -138,14 +148,25 @@ export function LeadDrawer({
 
   useEffect(() => {
     if (lead) {
-      setStatus((lead.status_funil as StatusFunil) ?? "novo");
+      setStatus(lead.status_funil ?? "novo");
       setObservacoes(lead.observacoes ?? "");
       setNome(lead.nome ?? "");
       setCidade(lead.cidade ?? "");
       setPerfil(lead.perfil ?? "");
       setResponsavel(lead.responsavel ?? "");
+      setOrigem(lead.origem ?? "");
+      setMotivoPerda(lead.motivo_perda ?? "");
+      setEtiquetas(lead.etiquetas ?? []);
     }
   }, [lead?.id]);
+
+  const isPerdido = status === "perdido";
+
+  function toggleEtiqueta(nomeTag: string) {
+    setEtiquetas((prev) =>
+      prev.includes(nomeTag) ? prev.filter((t) => t !== nomeTag) : [...prev, nomeTag],
+    );
+  }
 
   const totalComprado = vendas.reduce((s, v) => s + Number(v.valor || 0), 0);
   const numCompras = vendas.length;
@@ -153,6 +174,10 @@ export function LeadDrawer({
 
   async function handleSave() {
     if (!lead) return;
+    if (isPerdido && !motivoPerda.trim()) {
+      toast.error("Informe o motivo da perda");
+      return;
+    }
     setSaving(true);
     const updatePayload: Database["public"]["Tables"]["leads"]["Update"] = {
       status_funil: status,
@@ -160,6 +185,9 @@ export function LeadDrawer({
       nome: nome.trim() || null,
       cidade: cidade.trim() || null,
       perfil: perfil || null,
+      origem: origem || null,
+      motivo_perda: isPerdido ? motivoPerda.trim() : null,
+      etiquetas: etiquetas,
     };
     if (responsavel && responsavel !== lead.responsavel) {
       updatePayload.responsavel = responsavel;
@@ -177,6 +205,7 @@ export function LeadDrawer({
     qc.invalidateQueries({ queryKey: ["leads"] });
     qc.invalidateQueries({ queryKey: ["lead", lead.id] });
   }
+
 
   async function syncLeadFromVendas(leadIdArg: string) {
     const { data } = await supabase
@@ -318,19 +347,91 @@ export function LeadDrawer({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={status} onValueChange={(v) => setStatus(v as StatusFunil)}>
+                <Label>Origem</Label>
+                <Select value={origem || "__none"} onValueChange={(v) => setOrigem(v === "__none" ? "" : v)}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione a origem" />
                   </SelectTrigger>
                   <SelectContent>
-                    {STATUS_FUNIL.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {STATUS_LABEL[s]}
+                    <SelectItem value="__none">Não definida</SelectItem>
+                    {ORIGENS.map((o) => (
+                      <SelectItem key={o} value={o}>
+                        {o}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(etapas.length > 0
+                      ? etapas.map((e) => ({ value: e.slug, label: e.nome }))
+                      : STATUS_FUNIL.map((s) => ({ value: s, label: STATUS_LABEL[s] ?? s }))
+                    ).map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {isPerdido && (
+                <div className="space-y-2">
+                  <Label>
+                    Motivo da perda <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    value={motivoPerda}
+                    onChange={(e) => setMotivoPerda(e.target.value)}
+                    placeholder="Ex.: Preço, Sem resposta, Comprou com concorrente..."
+                  />
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label>Etiquetas</Label>
+                {etiquetas.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {etiquetas.map((t) => (
+                      <span
+                        key={t}
+                        className={`rounded px-2 py-0.5 text-[11px] font-semibold border ${etiquetaClass(t)}`}
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="space-y-2 border rounded-md p-3 bg-muted/30">
+                  {(["comportamento", "acao", "interesse"] as const).map((cat) => (
+                    <div key={cat}>
+                      <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+                        {CATEGORIA_LABEL[cat]}
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {ETIQUETAS.filter((e) => e.categoria === cat).map((e) => {
+                          const active = etiquetas.includes(e.nome);
+                          return (
+                            <button
+                              key={e.nome}
+                              type="button"
+                              onClick={() => toggleEtiqueta(e.nome)}
+                              className={`rounded px-2 py-0.5 text-[11px] font-semibold border transition ${
+                                active ? e.className : "border-border text-muted-foreground opacity-60 hover:opacity-100"
+                              }`}
+                            >
+                              {e.nome}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Observações</Label>
@@ -341,6 +442,7 @@ export function LeadDrawer({
                   placeholder="Notas internas sobre o lead..."
                 />
               </div>
+
               <Button onClick={handleSave} disabled={saving} className="w-full">
                 {saving ? "Salvando..." : "Salvar alterações"}
               </Button>
