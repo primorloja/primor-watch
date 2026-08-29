@@ -4,14 +4,14 @@ import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-quer
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  STATUS_FUNIL,
   STATUS_LABEL,
   VENDEDORAS,
   PERFIL_LABEL,
   formatBRL,
   relativeFromNow,
-  type StatusFunil,
 } from "@/lib/primor";
+import { useEtapas, type Etapa } from "@/lib/use-etapas";
+import { ETIQUETAS, etiquetaClass } from "@/lib/etiquetas";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
