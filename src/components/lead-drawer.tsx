@@ -47,6 +47,9 @@ type Lead = {
   status_funil: string;
   qualificado_ia: boolean | null;
   observacoes: string | null;
+  origem: string | null;
+  motivo_perda: string | null;
+  etiquetas: string[] | null;
 };
 
 type Venda = {
