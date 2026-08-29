@@ -343,19 +343,91 @@ export function LeadDrawer({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={status} onValueChange={(v) => setStatus(v as StatusFunil)}>
+                <Label>Origem</Label>
+                <Select value={origem || "__none"} onValueChange={(v) => setOrigem(v === "__none" ? "" : v)}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione a origem" />
                   </SelectTrigger>
                   <SelectContent>
-                    {STATUS_FUNIL.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {STATUS_LABEL[s]}
+                    <SelectItem value="__none">Não definida</SelectItem>
+                    {ORIGENS.map((o) => (
+                      <SelectItem key={o} value={o}>
+                        {o}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(etapas.length > 0
+                      ? etapas.map((e) => ({ value: e.slug, label: e.nome }))
+                      : STATUS_FUNIL.map((s) => ({ value: s, label: STATUS_LABEL[s] ?? s }))
+                    ).map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {isPerdido && (
+                <div className="space-y-2">
+                  <Label>
+                    Motivo da perda <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    value={motivoPerda}
+                    onChange={(e) => setMotivoPerda(e.target.value)}
+                    placeholder="Ex.: Preço, Sem resposta, Comprou com concorrente..."
+                  />
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label>Etiquetas</Label>
+                {etiquetas.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {etiquetas.map((t) => (
+                      <span
+                        key={t}
+                        className={`rounded px-2 py-0.5 text-[11px] font-semibold border ${etiquetaClass(t)}`}
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="space-y-2 border rounded-md p-3 bg-muted/30">
+                  {(["comportamento", "acao", "interesse"] as const).map((cat) => (
+                    <div key={cat}>
+                      <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+                        {CATEGORIA_LABEL[cat]}
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {ETIQUETAS.filter((e) => e.categoria === cat).map((e) => {
+                          const active = etiquetas.includes(e.nome);
+                          return (
+                            <button
+                              key={e.nome}
+                              type="button"
+                              onClick={() => toggleEtiqueta(e.nome)}
+                              className={`rounded px-2 py-0.5 text-[11px] font-semibold border transition ${
+                                active ? e.className : "border-border text-muted-foreground opacity-60 hover:opacity-100"
+                              }`}
+                            >
+                              {e.nome}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Observações</Label>
@@ -366,6 +438,7 @@ export function LeadDrawer({
                   placeholder="Notas internas sobre o lead..."
                 />
               </div>
+
               <Button onClick={handleSave} disabled={saving} className="w-full">
                 {saving ? "Salvando..." : "Salvar alterações"}
               </Button>
