@@ -123,12 +123,15 @@ export function LeadDrawer({
     enabled: !!lead && open,
   });
 
-  const [status, setStatus] = useState<StatusFunil>("novo");
+  const [status, setStatus] = useState<string>("novo");
   const [observacoes, setObservacoes] = useState("");
   const [nome, setNome] = useState("");
   const [cidade, setCidade] = useState("");
   const [perfil, setPerfil] = useState<string>("");
   const [responsavel, setResponsavel] = useState<string>("");
+  const [origem, setOrigem] = useState<string>("");
+  const [motivoPerda, setMotivoPerda] = useState<string>("");
+  const [etiquetas, setEtiquetas] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const VENDEDORAS = ["Thamiris", "Julyana", "Gabrielle", "Fernanda"];
@@ -141,14 +144,25 @@ export function LeadDrawer({
 
   useEffect(() => {
     if (lead) {
-      setStatus((lead.status_funil as StatusFunil) ?? "novo");
+      setStatus(lead.status_funil ?? "novo");
       setObservacoes(lead.observacoes ?? "");
       setNome(lead.nome ?? "");
       setCidade(lead.cidade ?? "");
       setPerfil(lead.perfil ?? "");
       setResponsavel(lead.responsavel ?? "");
+      setOrigem(lead.origem ?? "");
+      setMotivoPerda(lead.motivo_perda ?? "");
+      setEtiquetas(lead.etiquetas ?? []);
     }
   }, [lead?.id]);
+
+  const isPerdido = status === "perdido";
+
+  function toggleEtiqueta(nomeTag: string) {
+    setEtiquetas((prev) =>
+      prev.includes(nomeTag) ? prev.filter((t) => t !== nomeTag) : [...prev, nomeTag],
+    );
+  }
 
   const totalComprado = vendas.reduce((s, v) => s + Number(v.valor || 0), 0);
   const numCompras = vendas.length;
@@ -156,6 +170,10 @@ export function LeadDrawer({
 
   async function handleSave() {
     if (!lead) return;
+    if (isPerdido && !motivoPerda.trim()) {
+      toast.error("Informe o motivo da perda");
+      return;
+    }
     setSaving(true);
     const updatePayload: Database["public"]["Tables"]["leads"]["Update"] = {
       status_funil: status,
@@ -163,6 +181,9 @@ export function LeadDrawer({
       nome: nome.trim() || null,
       cidade: cidade.trim() || null,
       perfil: perfil || null,
+      origem: origem || null,
+      motivo_perda: isPerdido ? motivoPerda.trim() : null,
+      etiquetas: etiquetas,
     };
     if (responsavel && responsavel !== lead.responsavel) {
       updatePayload.responsavel = responsavel;
@@ -180,6 +201,7 @@ export function LeadDrawer({
     qc.invalidateQueries({ queryKey: ["leads"] });
     qc.invalidateQueries({ queryKey: ["lead", lead.id] });
   }
+
 
   async function syncLeadFromVendas(leadIdArg: string) {
     const { data } = await supabase
