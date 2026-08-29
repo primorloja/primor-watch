@@ -10,18 +10,42 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
+      funil_etapas: {
+        Row: {
+          cor: string | null
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          cor?: string | null
+          id?: string
+          nome: string
+          ordem: number
+        }
+        Update: {
+          cor?: string | null
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           cidade: string | null
           criado_em: string | null
           data_venda: string | null
+          etiquetas: string[] | null
           id: string
+          motivo_perda: string | null
           nome: string | null
           observacoes: string | null
+          origem: string | null
           perfil: string | null
           qualificado_ia: boolean | null
           responsavel: string
@@ -35,9 +59,12 @@ export type Database = {
           cidade?: string | null
           criado_em?: string | null
           data_venda?: string | null
+          etiquetas?: string[] | null
           id?: string
+          motivo_perda?: string | null
           nome?: string | null
           observacoes?: string | null
+          origem?: string | null
           perfil?: string | null
           qualificado_ia?: boolean | null
           responsavel: string
@@ -51,9 +78,12 @@ export type Database = {
           cidade?: string | null
           criado_em?: string | null
           data_venda?: string | null
+          etiquetas?: string[] | null
           id?: string
+          motivo_perda?: string | null
           nome?: string | null
           observacoes?: string | null
+          origem?: string | null
           perfil?: string | null
           qualificado_ia?: boolean | null
           responsavel?: string
