@@ -144,7 +144,7 @@ function DashboardPage() {
   const [custom, setCustom] = useState<PeriodRange>({ from: null, to: null });
   const [vendMetric, setVendMetric] = useState<"leads" | "qualificados" | "vendas" | "faturamento">("leads");
   const range = useMemo(() => getPeriodRange(period, custom), [period, custom]);
-  const { kpisQ, funilQ, diaQ, vendQ, semInteracaoQ } = useDashboardData(range);
+  const { kpisQ, funilQ, diaQ, vendQ, semInteracaoQ, trafegoQ, motivosQ } = useDashboardData(range);
 
   const isLoading = kpisQ.isLoading || funilQ.isLoading || diaQ.isLoading || vendQ.isLoading;
 
@@ -288,6 +288,72 @@ function DashboardPage() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Performance de Tráfego Pago</h2>
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+              <Kpi title="Leads de anúncios" value={String(Number(trafegoQ.data?.leads ?? 0))} />
+              <Kpi title="Vendas de anúncios" value={String(Number(trafegoQ.data?.vendas ?? 0))} />
+              <Kpi
+                title="Conversão de anúncios"
+                value={formatPercent(
+                  Number(trafegoQ.data?.leads ?? 0) > 0
+                    ? (Number(trafegoQ.data?.vendas ?? 0) / Number(trafegoQ.data?.leads ?? 0)) * 100
+                    : 0,
+                )}
+              />
+              <Kpi title="Faturamento de anúncios" value={formatBRL(Number(trafegoQ.data?.faturamento ?? 0))} />
+              <Kpi title="Ticket médio (anúncios)" value={formatBRL(Number(trafegoQ.data?.ticket_medio ?? 0))} />
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Melhor conversão em leads pagos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {trafegoQ.data?.melhor_vendedora ? (
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-2xl font-semibold">{trafegoQ.data.melhor_vendedora}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {formatPercent(Number(trafegoQ.data.melhor_conversao ?? 0))} de conversão
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Sem dados no período.</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Motivos de perda mais frequentes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(motivosQ.data ?? []).length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhum lead perdido no período.</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {(motivosQ.data ?? []).slice(0, 8).map((m) => {
+                        const max = Math.max(...(motivosQ.data ?? []).map((x) => Number(x.qtd)));
+                        const pct = max > 0 ? (Number(m.qtd) / max) * 100 : 0;
+                        return (
+                          <li key={m.motivo} className="space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="truncate">{m.motivo}</span>
+                              <span className="text-muted-foreground">{Number(m.qtd)}</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-muted overflow-hidden">
+                              <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
           <Card>
             <CardHeader>
