@@ -60,12 +60,15 @@ type Lead = {
   valor_venda: number | null;
   ultima_interacao_em: string | null;
   criado_em: string | null;
+  origem: string | null;
+  etiquetas: string[] | null;
 };
 
 function LeadsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { data: etapas = [] } = useEtapas();
   const [view, setView] = useState<"tabela" | "kanban">(search.view ?? "tabela");
   const [q, setQ] = useState("");
   const [fResp, setFResp] = useState<string>("all");
@@ -73,8 +76,14 @@ function LeadsPage() {
   const [fPerfil, setFPerfil] = useState<string>("all");
   const [fStatus, setFStatus] = useState<string>("all");
   const [fQual, setFQual] = useState<string>("all");
+  const [fEtiqueta, setFEtiqueta] = useState<string>("all");
   const [drawerId, setDrawerId] = useState<string | null>(search.leadId ?? null);
   const [newOpen, setNewOpen] = useState(false);
+
+  const etapaBySlug = useMemo(
+    () => new Map(etapas.map((e) => [e.slug, e])),
+    [etapas],
+  );
 
   useEffect(() => {
     setDrawerId(search.leadId ?? null);
@@ -88,7 +97,7 @@ function LeadsPage() {
   }, [q]);
 
   const PAGE_SIZE = 500;
-  const filterKey = { q: qDebounced, fResp, fCidade, fPerfil, fStatus, fQual };
+  const filterKey = { q: qDebounced, fResp, fCidade, fPerfil, fStatus, fQual, fEtiqueta };
 
   const {
     data: pages,
@@ -105,7 +114,7 @@ function LeadsPage() {
       let query = supabase
         .from("leads")
         .select(
-          "id,nome,telefone_e164,cidade,perfil,responsavel,status_funil,qualificado_ia,valor_venda,ultima_interacao_em,criado_em",
+          "id,nome,telefone_e164,cidade,perfil,responsavel,status_funil,qualificado_ia,valor_venda,ultima_interacao_em,criado_em,origem,etiquetas",
           { count: "exact" },
         )
         .order("ultima_interacao_em", { ascending: false, nullsFirst: false })
@@ -115,12 +124,14 @@ function LeadsPage() {
       if (fCidade !== "all") query = query.eq("cidade", fCidade);
       if (fPerfil !== "all") query = query.eq("perfil", fPerfil);
       if (fStatus !== "all") query = query.eq("status_funil", fStatus);
+      if (fEtiqueta !== "all") query = query.contains("etiquetas", [fEtiqueta]);
       if (fQual === "yes") query = query.eq("qualificado_ia", true);
       if (fQual === "no") query = query.or("qualificado_ia.is.null,qualificado_ia.eq.false");
       if (qDebounced) {
         const esc = qDebounced.replace(/[%,()]/g, " ");
         query = query.or(`nome.ilike.%${esc}%,telefone_e164.ilike.%${esc}%`);
       }
+
 
       const { data, error, count } = await query;
       if (error) throw error;
