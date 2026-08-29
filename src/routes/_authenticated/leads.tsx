@@ -384,18 +384,21 @@ function FilterSelect({
   );
 }
 
-const STATUS_COLORS: Record<StatusFunil, string> = {
-  novo: "bg-muted text-foreground",
-  em_atendimento: "bg-[color-mix(in_oklab,var(--rose-accent)_55%,white)] text-foreground",
-  qualificado: "bg-[var(--rose-accent)] text-foreground",
-  negociando: "bg-[color-mix(in_oklab,var(--primary)_25%,white)] text-foreground",
-  vendido: "bg-[var(--primary)] text-primary-foreground",
-  perdido: "bg-muted text-muted-foreground line-through",
+const COR_CLASSES: Record<string, string> = {
+  gray: "bg-muted text-muted-foreground",
+  slate: "bg-muted text-muted-foreground",
+  blue: "bg-[var(--tag-blue)]/15 text-[var(--tag-blue)]",
+  purple: "bg-[var(--tag-purple)]/15 text-[var(--tag-purple)]",
+  orange: "bg-[var(--tag-orange)]/15 text-[var(--tag-orange)]",
+  yellow: "bg-[var(--tag-yellow)]/15 text-[var(--tag-yellow)]",
+  green: "bg-[var(--tag-green)]/15 text-[var(--tag-green)]",
+  red: "bg-[var(--tag-red)]/15 text-[var(--tag-red)]",
 };
 
-function StatusBadge({ status }: { status: StatusFunil }) {
+function StatusBadge({ status, cor }: { status: string; cor?: string | null }) {
+  const cls = (cor && COR_CLASSES[cor]) || "bg-[var(--primary)]/15 text-[var(--primary)]";
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[status] ?? "bg-muted"}`}>
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
       {STATUS_LABEL[status] ?? status}
     </span>
   );
@@ -403,18 +406,20 @@ function StatusBadge({ status }: { status: StatusFunil }) {
 
 function KanbanBoard({
   leads,
+  etapas,
   onOpen,
   onMove,
 }: {
   leads: Lead[];
+  etapas: Etapa[];
   onOpen: (id: string) => void;
-  onMove: (id: string, status: StatusFunil) => void;
+  onMove: (id: string, status: string) => void;
 }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   function handleDragEnd(e: DragEndEvent) {
     const id = String(e.active.id);
-    const overStatus = e.over?.id as StatusFunil | undefined;
+    const overStatus = e.over?.id ? String(e.over.id) : undefined;
     if (!overStatus) return;
     const lead = leads.find((l) => l.id === id);
     if (!lead || lead.status_funil === overStatus) return;
@@ -424,14 +429,15 @@ function KanbanBoard({
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-2">
-        {STATUS_FUNIL.map((s) => {
-          const items = leads.filter((l) => l.status_funil === s);
-          return <KanbanColumn key={s} status={s} items={items} onOpen={onOpen} />;
+        {etapas.map((et) => {
+          const items = leads.filter((l) => l.status_funil === et.slug);
+          return <KanbanColumn key={et.id} etapa={et} items={items} onOpen={onOpen} />;
         })}
       </div>
     </DndContext>
   );
 }
+
 
 function KanbanColumn({
   status,
