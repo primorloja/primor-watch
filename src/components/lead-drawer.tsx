@@ -83,6 +83,7 @@ export function LeadDrawer({
   onOpenChange: (b: boolean) => void;
 }) {
   const qc = useQueryClient();
+  const { data: etapas = [] } = useEtapas();
   const { data: lead } = useQuery({
     queryKey: ["lead", leadId],
     queryFn: async () => {
