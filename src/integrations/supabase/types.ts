@@ -210,6 +210,7 @@ export type Database = {
           vendas: number
         }[]
       }
+      is_gestora: { Args: never; Returns: boolean }
       leads_compras_agg: {
         Args: never
         Returns: {
