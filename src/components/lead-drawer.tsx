@@ -35,6 +35,7 @@ import { STATUS_FUNIL, STATUS_LABEL, PERFIL_LABEL, formatBRL, formatDate, format
 import { ORIGENS } from "@/lib/origens";
 import { ETIQUETAS, CATEGORIA_LABEL, etiquetaClass } from "@/lib/etiquetas";
 import { useEtapas } from "@/lib/use-etapas";
+import { useRole } from "@/lib/use-role";
 import { Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -83,6 +84,9 @@ export function LeadDrawer({
   onOpenChange: (b: boolean) => void;
 }) {
   const qc = useQueryClient();
+  const role = useRole();
+  const isAdmin = role === "gestora";
+  const [excluindo, setExcluindo] = useState(false);
   const { data: etapas = [] } = useEtapas();
   const { data: lead } = useQuery({
     queryKey: ["lead", leadId],
@@ -281,6 +285,24 @@ export function LeadDrawer({
     qc.invalidateQueries({ queryKey: ["vend-rpc"] });
   }
 
+  async function handleExcluirLead() {
+    if (!lead || !isAdmin) return;
+    setExcluindo(true);
+    const { error } = await supabase.from("leads").delete().eq("id", lead.id);
+    setExcluindo(false);
+    if (error) {
+      toast.error("Erro ao excluir lead: " + error.message);
+      return;
+    }
+    toast.success("Lead excluído");
+    onOpenChange(false);
+    qc.invalidateQueries({ queryKey: ["leads"] });
+    qc.invalidateQueries({ queryKey: ["leads-compras"] });
+    qc.invalidateQueries({ queryKey: ["dash-kpis"] });
+    qc.invalidateQueries({ queryKey: ["dash-vend"] });
+    qc.invalidateQueries({ queryKey: ["vend-rpc"] });
+  }
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-xl overflow-y-auto p-0">
@@ -446,6 +468,34 @@ export function LeadDrawer({
               <Button onClick={handleSave} disabled={saving} className="w-full">
                 {saving ? "Salvando..." : "Salvar alterações"}
               </Button>
+
+              {isAdmin && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" /> Excluir Lead
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir lead?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir permanentemente este lead? Essa ação não pode
+                        ser desfeita e todo o histórico será perdido.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction disabled={excluindo} onClick={handleExcluirLead}>
+                        {excluindo ? "Excluindo..." : "Excluir"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
 
             <div className="border-t pt-4 space-y-4">
