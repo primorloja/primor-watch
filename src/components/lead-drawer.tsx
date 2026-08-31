@@ -285,6 +285,24 @@ export function LeadDrawer({
     qc.invalidateQueries({ queryKey: ["vend-rpc"] });
   }
 
+  async function handleExcluirLead() {
+    if (!lead || !isAdmin) return;
+    setExcluindo(true);
+    const { error } = await supabase.from("leads").delete().eq("id", lead.id);
+    setExcluindo(false);
+    if (error) {
+      toast.error("Erro ao excluir lead: " + error.message);
+      return;
+    }
+    toast.success("Lead excluído");
+    onOpenChange(false);
+    qc.invalidateQueries({ queryKey: ["leads"] });
+    qc.invalidateQueries({ queryKey: ["leads-compras"] });
+    qc.invalidateQueries({ queryKey: ["dash-kpis"] });
+    qc.invalidateQueries({ queryKey: ["dash-vend"] });
+    qc.invalidateQueries({ queryKey: ["vend-rpc"] });
+  }
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-xl overflow-y-auto p-0">
