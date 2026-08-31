@@ -468,6 +468,34 @@ export function LeadDrawer({
               <Button onClick={handleSave} disabled={saving} className="w-full">
                 {saving ? "Salvando..." : "Salvar alterações"}
               </Button>
+
+              {isAdmin && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" /> Excluir Lead
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir lead?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir permanentemente este lead? Essa ação não pode
+                        ser desfeita e todo o histórico será perdido.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction disabled={excluindo} onClick={handleExcluirLead}>
+                        {excluindo ? "Excluindo..." : "Excluir"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
 
             <div className="border-t pt-4 space-y-4">
