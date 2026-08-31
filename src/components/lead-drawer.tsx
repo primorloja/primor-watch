@@ -84,6 +84,9 @@ export function LeadDrawer({
   onOpenChange: (b: boolean) => void;
 }) {
   const qc = useQueryClient();
+  const role = useRole();
+  const isAdmin = role === "gestora";
+  const [excluindo, setExcluindo] = useState(false);
   const { data: etapas = [] } = useEtapas();
   const { data: lead } = useQuery({
     queryKey: ["lead", leadId],
