@@ -35,6 +35,7 @@ import { STATUS_FUNIL, STATUS_LABEL, PERFIL_LABEL, formatBRL, formatDate, format
 import { ORIGENS } from "@/lib/origens";
 import { ETIQUETAS, CATEGORIA_LABEL, etiquetaClass } from "@/lib/etiquetas";
 import { useEtapas } from "@/lib/use-etapas";
+import { useRole } from "@/lib/use-role";
 import { Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
